@@ -1,5 +1,0 @@
-c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGame\bin\Debug\BowlingGame.dll
-c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGame\bin\Debug\BowlingGame.pdb
-c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGame\obj\Debug\BowlingGame.csprojResolveAssemblyReference.cache
-c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGame\obj\Debug\BowlingGame.dll
-c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGame\obj\Debug\BowlingGame.pdb
