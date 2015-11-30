@@ -1,0 +1,9 @@
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\BowlingGameTests.dll
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\BowlingGameTests.pdb
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\BowlingGame.dll
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\nunit.framework.dll
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\BowlingGame.pdb
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\bin\Debug\nunit.framework.xml
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\obj\Debug\BowlingGameTests.csprojResolveAssemblyReference.cache
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\obj\Debug\BowlingGameTests.dll
+c:\users\stuna_000\documents\visual studio 2013\Projects\BowlingGame\BowlingGameTests\obj\Debug\BowlingGameTests.pdb
