@@ -80,7 +80,7 @@ namespace StringCalculator.Tests
         }
 
         [TestCase(",.")]
-        [TestCase("0, 1, 2, -")]
+        [TestCase("0, 1, 2, #")]
         [TestCase("1, 3, f")]
         [TestCase("4, !")]
         public void Add_ThrowsArgurmentException_WhenInputContainsNonIntegerValues(string input)
@@ -104,6 +104,41 @@ namespace StringCalculator.Tests
             var actual = calc.Add(input);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestCase("//,\n1,2,3", 6)]
+        [TestCase("//;\n1;2;3", 6)]
+        [TestCase("//+\n1+2+3", 6)]
+        public void Add_ReturnsCorrectSum_WhenCustomDelimitersArePassedIn(string input, int expected)
+        {
+            var calc = MakeStringCalculator();
+
+            var actual = calc.Add(input);
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestCase("1, -1")]
+        [TestCase("0, -1, 2, -2")]
+        public void Add_ThrowsArgurmentOutOfRangeException_WhenInputContainsNegativeIntegerValues(string input)
+        {
+            var calc = MakeStringCalculator();
+
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => calc.Add(input));
+            var expected = "Numbers must be greater than zero.";
+
+            StringAssert.Contains(expected, ex.Message);
+        }
+
+        [TestCase("1, -1", "-1")]
+        [TestCase("0, -1, 2, -2", "-1, -2")]
+        public void Add_ArgurmentOutOfRangeExceptionMessage_ContainsNegativeIntegerValuesFromInputString(string input, string expected)
+        {
+            var calc = MakeStringCalculator();
+
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => calc.Add(input));
+
+            StringAssert.Contains(expected, ex.Message);
         }
     }
 }

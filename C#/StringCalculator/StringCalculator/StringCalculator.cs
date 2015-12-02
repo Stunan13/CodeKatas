@@ -17,39 +17,73 @@ namespace StringCalculator
         public object Add(string input)
         {
             int sum = 0;
-            var delimiters = GetDelimiters(input);
+            var delimiters = GetDelimiters(ref input);
 
             if (input != string.Empty)
             {
                 string[] numbers = input.Replace(" ", "")
                                         .Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (var number in numbers)
+                if (ContainsNegativeNumbers(numbers))
                 {
-                    int numToAdd = 0;
-                    if (int.TryParse(number, out numToAdd))
-                    {
-                        sum += int.Parse(number);
-                    }
-                    else
-                    {
-                        throw new ArgumentException(string.Format("Argument: {0} is not a valid whole number", number));
-                    }
+                    ThrowNumbersLessThanZeroException(numbers);
                 }
+
+                sum = SumNumbers(numbers);
             }
 
             return sum;
         }
 
-        private char[] GetDelimiters(string input)
+        private int SumNumbers(string[] numbers)
+        {
+            int sum = 0;
+            foreach (var number in numbers)
+            {
+                int numToAdd;
+                if (int.TryParse(number, out numToAdd))
+                {
+                    sum += numToAdd;
+                }
+                else
+                {
+                    ThrowNumberInvalidException(number);
+                }
+            }
+            return sum;
+        }
+
+        private bool ContainsNegativeNumbers(string[] numbers)
+        {
+            return numbers.Any(n => n.Contains("-"));
+        }
+
+        private void ThrowNumberInvalidException(string number)
+        {
+            throw new ArgumentException(string.Format("Argument: {0} is not a valid whole number", number));
+        }
+
+        private void ThrowNumbersLessThanZeroException(string[] numbers)
+        {
+            string[] numbersLessThanZero = numbers.Where(n => n.Contains("-")).ToArray();
+            
+            throw new ArgumentOutOfRangeException(string.Format("Numbers must be greater than zero. Numbers: {0} are less than zero.", String.Join(", ", numbersLessThanZero)));
+        }
+
+        private char[] GetDelimiters(ref string input)
         {
             char[] delimiters = new char[] { ',', '\n' };
-            var regex = new Regex(@"/^(\/\/).+(?:\\n)/g");
 
-            if (regex.IsMatch(input))
+            var regex = new Regex(@"^(\/\/).+(?:\n)");
+            
+            Match m = regex.Match(input);
+            if (m.Success)
             {
-                Match m = regex.Match(input);
-                //delimiters = new char[] { m.Value.Remove(0, 2).Replace("\n", "").ToCharArray() };
+                delimiters = m.Value.Remove(m.Value.Length - 1, 1)
+                                    .Remove(0, 2)
+                                    .ToCharArray();
+
+                input = input.Remove(0, m.Length);
             }
 
             return delimiters;
