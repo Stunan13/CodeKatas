@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace StringCalculator
 {
@@ -16,7 +16,6 @@ namespace StringCalculator
         /// <returns></returns>
         public object Add(string input)
         {
-            int sum = 0;
             var delimiters = GetDelimiters(ref input);
 
             if (input != string.Empty)
@@ -24,69 +23,88 @@ namespace StringCalculator
                 string[] numbers = input.Replace(" ", "")
                                         .Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
 
-                if (ContainsNegativeNumbers(numbers))
-                {
-                    ThrowNumbersLessThanZeroException(numbers);
-                }
 
-                sum = SumNumbers(numbers);
+                ValidateInput(numbers);
+                return SumNumbers(numbers);
             }
 
-            return sum;
+            return 0;
         }
 
-        private int SumNumbers(string[] numbers)
+        #region Private Members
+
+        private static int SumNumbers(string[] numbers)
         {
-            int sum = 0;
-            foreach (var number in numbers)
+            return numbers.Select(number => Convert.ToInt32(number)).Where(numToAdd => numToAdd < 1000).Sum();
+        }
+
+        private void ValidateInput(string[] numbers)
+        {
+            var invalidNumbers = GetInvalidNumbers(numbers);
+            if (invalidNumbers.Length > 0)
             {
-                int numToAdd;
-                if (int.TryParse(number, out numToAdd))
-                {
-                    sum += numToAdd;
-                }
-                else
-                {
-                    ThrowNumberInvalidException(number);
-                }
+                ThrowNumberInvalidException(invalidNumbers);
             }
-            return sum;
+
+            var negativeNumbers = GetNegativeNumbers(numbers);
+            if (negativeNumbers.Length > 0)
+            {
+                ThrowNumbersLessThanZeroException(negativeNumbers);
+            }
         }
 
-        private bool ContainsNegativeNumbers(string[] numbers)
+        private string[] GetNegativeNumbers(string[] numbers)
         {
-            return numbers.Any(n => n.Contains("-"));
+            return numbers.Where(n => n.Contains("-")).ToArray();
         }
 
-        private void ThrowNumberInvalidException(string number)
+        private string[] GetInvalidNumbers(string[] numbers)
         {
-            throw new ArgumentException(string.Format("Argument: {0} is not a valid whole number", number));
+            int i;
+            return numbers.Where(n => !int.TryParse(n, out i)).ToArray();
+        }
+
+        private void ThrowNumberInvalidException(string[] numbers)
+        {
+            throw new ArgumentException(string.Format("Arguments: {0} are not valid whole numbers", string.Join(", ", numbers)));
         }
 
         private void ThrowNumbersLessThanZeroException(string[] numbers)
         {
-            string[] numbersLessThanZero = numbers.Where(n => n.Contains("-")).ToArray();
-            
-            throw new ArgumentOutOfRangeException(string.Format("Numbers must be greater than zero. Numbers: {0} are less than zero.", String.Join(", ", numbersLessThanZero)));
+            throw new ArgumentOutOfRangeException(string.Format("Negatives are not allowed. Numbers: {0} are negative.", String.Join(", ", numbers)));
         }
 
-        private char[] GetDelimiters(ref string input)
+        private string[] GetDelimiters(ref string input)
         {
-            char[] delimiters = new char[] { ',', '\n' };
+            var delimiters = new List<string> ();
+            string customDelimPattern =  @"^(\/\/).+(?:\n)";
+            string multiDelimPattern = @"(\[.+?\])";
 
-            var regex = new Regex(@"^(\/\/).+(?:\n)");
-            
-            Match m = regex.Match(input);
+            Match m = Regex.Match(input, customDelimPattern);
             if (m.Success)
             {
-                delimiters = m.Value.Remove(m.Value.Length - 1, 1)
-                                    .Remove(0, 2)
-                                    .ToCharArray();
+                if (Regex.IsMatch(input, multiDelimPattern))
+                {
+                    foreach (Match match in Regex.Matches(input, multiDelimPattern))
+                    {
+                        delimiters.Add(match.Value.Remove(match.Length - 1, 1).Remove(0, 1));        
+                    }
+                }
+                else
+                {
+                    delimiters = new List<string> { m.Value.Remove(m.Value.Length - 1, 1).Remove(0, 2) };
+                }
 
                 input = input.Remove(0, m.Length);
             }
+            else
+            {
+                delimiters = new List<string> { ",", "\n" };
+            }
 
-            return delimiters;
+            return delimiters.ToArray();
         }
+
+        #endregion
     }
 }

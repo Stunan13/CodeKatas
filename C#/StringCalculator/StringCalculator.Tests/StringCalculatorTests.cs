@@ -88,7 +88,19 @@ namespace StringCalculator.Tests
             var calc = MakeStringCalculator();
 
             var ex = Assert.Throws<ArgumentException>(() => calc.Add(input));
-            var expected = "is not a valid whole number";
+            var expected = "are not valid whole numbers";
+
+            StringAssert.Contains(expected, ex.Message);
+        }
+        
+        [TestCase("0, 1, 2, #", "#")]
+        [TestCase("1, 3, f", "f")]
+        [TestCase("4, !", "!")]
+        public void Add_ArgurmentExceptionMessage_ContainInvalidValuesFromInputString(string input, string expected)
+        {
+            var calc = MakeStringCalculator();
+
+            var ex = Assert.Throws<ArgumentException>(() => calc.Add(input));
 
             StringAssert.Contains(expected, ex.Message);
         }
@@ -109,7 +121,7 @@ namespace StringCalculator.Tests
         [TestCase("//,\n1,2,3", 6)]
         [TestCase("//;\n1;2;3", 6)]
         [TestCase("//+\n1+2+3", 6)]
-        public void Add_ReturnsCorrectSum_WhenCustomDelimitersArePassedIn(string input, int expected)
+        public void Add_ReturnsCorrectSum_WhenSingleCustomDelimiterIsPassedIn(string input, int expected)
         {
             var calc = MakeStringCalculator();
 
@@ -125,7 +137,7 @@ namespace StringCalculator.Tests
             var calc = MakeStringCalculator();
 
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => calc.Add(input));
-            var expected = "Numbers must be greater than zero.";
+            var expected = "Negatives are not allowed.";
 
             StringAssert.Contains(expected, ex.Message);
         }
@@ -139,6 +151,31 @@ namespace StringCalculator.Tests
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => calc.Add(input));
 
             StringAssert.Contains(expected, ex.Message);
+        }
+
+        [TestCase("0, 1000", 0)]
+        [TestCase("2, 1, 1001", 3)]
+        [TestCase("2000, 1, 1000, 5", 6)]
+        [TestCase("1, 2, 3, 4000, 5000", 6)]
+        public void Add_Excludes_NumbersOverOneThousandFromSum(string input, int expected)
+        {
+            var calc = MakeStringCalculator();
+
+            var actual = calc.Add(input);
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestCase("//[,][***]\n1***2,3", 6)]
+        [TestCase("//[;][!]\n1!2;3", 6)]
+        [TestCase("//[+][*.]\n1+2*.3", 6)]
+        public void Add_ReturnsCorrectSum_WhenCustomMultipleDelimitersArePassedIn(string input, int expected)
+        {
+            var calc = MakeStringCalculator();
+
+            var actual = calc.Add(input);
+
+            Assert.AreEqual(expected, actual);
         }
     }
 }
