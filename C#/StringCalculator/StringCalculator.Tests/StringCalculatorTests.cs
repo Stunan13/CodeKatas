@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Net;
 using System.Security.Cryptography;
 using NUnit.Framework;
+using NSubstitute;
 using StringCalculator;
+using StringCalculator.Interfaces;
 
 namespace StringCalculator.Tests
 {
@@ -9,10 +12,22 @@ namespace StringCalculator.Tests
     public class StringCalculatorTests
     {
         #region Helper Methods
+
         private static StringCalculator MakeStringCalculator()
         {
-            return new StringCalculator();
+            return new StringCalculator(MakeFakeLogger(), MakeFakeWebService());
         }
+
+        private static ILogger MakeFakeLogger()
+        {
+            return Substitute.For<ILogger>();
+        }
+
+        private static IWebService MakeFakeWebService()
+        {
+            return Substitute.For<IWebService>();
+        }
+        
         #endregion
 
         [Test]
@@ -105,19 +120,6 @@ namespace StringCalculator.Tests
             StringAssert.Contains(expected, ex.Message);
         }
 
-        [TestCase(",\n2, 3", 5)]
-        [TestCase("1,,, 2,", 3)]
-        [TestCase("1, 3, \n\n", 4)]
-        [TestCase("4, \n,,\n", 4)]
-        public void Add_SkipsEmptyParams_WhenInputContainsThem(string input, int expected)
-        {
-            var calc = MakeStringCalculator();
-
-            var actual = calc.Add(input);
-
-            Assert.AreEqual(expected, actual);
-        }
-
         [TestCase("//,\n1,2,3", 6)]
         [TestCase("//;\n1;2;3", 6)]
         [TestCase("//+\n1+2+3", 6)]
@@ -176,6 +178,34 @@ namespace StringCalculator.Tests
             var actual = calc.Add(input);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestCase("0, 1, 2, 3", "6")]
+        [TestCase("1, 4, 5", "10")]
+        [TestCase("//[**]\n2**3**4", "9")]
+        public void Add_CallsLoggerWrite_WithCorrectSumValue(string input, string expected)
+        {
+            var mockLogger = MakeFakeLogger();
+            var stubWebService = MakeFakeWebService();
+            var calc = new StringCalculator(mockLogger, stubWebService);
+
+            calc.Add(input);
+
+            mockLogger.Received().Write(expected);
+        }
+
+        [Test]
+        public void Add_CallsWebServiceWrite_WhenLoggerThrowsException()
+        {
+            string input = "1";
+            var mockWebService = MakeFakeWebService();
+            var stubLogger = MakeFakeLogger();
+            var calc = new StringCalculator(stubLogger, mockWebService);
+
+            stubLogger.When(l => l.Write(input)).Throw(new Exception("Fake Exception"));
+            calc.Add(input);
+            
+            mockWebService.Received().Write("Fake Exception");
         }
     }
 }
