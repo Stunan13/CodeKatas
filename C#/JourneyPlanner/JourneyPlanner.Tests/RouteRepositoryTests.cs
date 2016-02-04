@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JourneyPlanner;
+using JourneyPlanner.Interfaces;
 using NUnit.Framework;
+using NSubstitute;
 
 namespace JourneyPlanner.Tests
 {
@@ -12,9 +14,26 @@ namespace JourneyPlanner.Tests
     {
         #region Helper Methods
 
-        private RouteRepository MakeRouteRepository()
+        private RouteRepository MakeRouteRepository(IRouteFactory routeFactory)
         {
-            return new RouteRepository();
+            return new RouteRepository(routeFactory);
+        }
+
+        private IRouteFactory MakeFakeRouteFactory()
+        {
+            return Substitute.For<IRouteFactory>();
+        }
+
+        private IRoute MakeFakeRoute(int id, string from, string to, int duration)
+        {
+            var fakeRoute = Substitute.For<IRoute>();
+            
+            fakeRoute.Id = id;
+            fakeRoute.Duration = duration;
+            fakeRoute.From = from;
+            fakeRoute.To = to;
+
+            return fakeRoute;
         }
 
         private string[] MakePorts()
@@ -31,7 +50,8 @@ namespace JourneyPlanner.Tests
         [Test]
         public void GetRoutes_ByDefault_ReturnsEmptyList()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
 
             var expected = 0;
             var actual = routeRepository.GetRoutes().Count();
@@ -42,8 +62,10 @@ namespace JourneyPlanner.Tests
         [Test]
         public void GetRoutes_ReturnsListWithOneEntry_WhenRouteIsAdded()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
+            
 
             routeRepository.AddRoute(ports[0], ports[1], 4);
             var expected = 1;
@@ -55,9 +77,13 @@ namespace JourneyPlanner.Tests
         [Test]
         public void GetRoutes_ReturnsEmptyList_WhenRouteIsAddedThenDeleted()
         {
-            var routeRepository = MakeRouteRepository();
-
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
+
+            routeFactory.MakeRoute(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                        .Returns(r => MakeFakeRoute(Convert.ToInt32(r[0]), Convert.ToString(r[1]), Convert.ToString(r[2]), Convert.ToInt32(r[3])));
+
             routeRepository.AddRoute(ports[0], ports[1], 4);
 
             var routeToDelete = routeRepository.GetRoute(ports[0], ports[1]);
@@ -72,14 +98,18 @@ namespace JourneyPlanner.Tests
         [Test]
         public void GetRoute_ByDefault_ReturnsRouteWithMatchingFromAndToPort()
         {
-            var routeRepository = MakeRouteRepository();
-
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
+
+            routeFactory.MakeRoute(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                        .Returns(r => MakeFakeRoute(Convert.ToInt32(r[0]), Convert.ToString(r[1]), Convert.ToString(r[2]), Convert.ToInt32(r[3])));
+
             routeRepository.AddRoute(ports[0], ports[1], 4);
             var route = routeRepository.GetRoute(ports[0], ports[1]);
 
             var expected = ports;
-            var actual = new[] { route.PortFrom, route.PortTo };
+            var actual = new[] { route.From, route.To };
 
             Assert.AreEqual(expected, actual);
         }
@@ -88,7 +118,8 @@ namespace JourneyPlanner.Tests
         [Test]
         public void GetRoute_ThrowsArgumentException_WhenRouteDoesNotExist()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
 
             var expected = "Invalid Route";
@@ -100,8 +131,12 @@ namespace JourneyPlanner.Tests
         [Test]
         public void AddRoute_ThrowsArgumentException_WhenRouteAlreadyExistsWithSamePorts()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
+
+            routeFactory.MakeRoute(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                        .Returns(r => MakeFakeRoute(Convert.ToInt32(r[0]), Convert.ToString(r[1]), Convert.ToString(r[2]), Convert.ToInt32(r[3])));
 
             routeRepository.AddRoute(ports[0], ports[1], 4);
 
@@ -114,8 +149,12 @@ namespace JourneyPlanner.Tests
         [Test]
         public void UpdateRoute_ByDefault_ChangesValuesOfRouteWithSameId()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
             var ports = MakePorts();
+
+            routeFactory.MakeRoute(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                        .Returns(r => MakeFakeRoute(Convert.ToInt32(r[0]), Convert.ToString(r[1]), Convert.ToString(r[2]), Convert.ToInt32(r[3])));
 
             routeRepository.AddRoute(ports[0], ports[1], 4);
             var route = routeRepository.GetRoute(ports[0], ports[1]);
@@ -132,9 +171,11 @@ namespace JourneyPlanner.Tests
         [Test]
         public void UpdateRoute_ThrowsArgumentException_WhenRouteDoesNotExistWithSameId()
         {
-            var routeRepository = MakeRouteRepository();
+            var routeFactory = MakeFakeRouteFactory();
+            var routeRepository = MakeRouteRepository(routeFactory);
+
             var ports = MakePorts();
-            var route = new Route { Id = 1, PortFrom = ports[0], PortTo = ports[1] };
+            var route =  MakeFakeRoute(1, ports[0], ports[1], 1);
 
             var expected = "does not exist";
             var ex = Assert.Throws<ArgumentException>(() => routeRepository.UpdateRoute(route));

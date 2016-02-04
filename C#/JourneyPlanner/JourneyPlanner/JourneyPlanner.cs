@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JourneyPlanner.Interfaces;
 
 namespace JourneyPlanner
 {
@@ -82,32 +83,32 @@ namespace JourneyPlanner
             return journeys.ToArray();
         }
 
-        private void FindRoutesRecursive(string portFrom, string portTo, List<string> portsVisited, ref IEnumerable<Route> routes, ref List<Journey> journeys)
+        private void FindRoutesRecursive(string portFrom, string portTo, List<string> portsVisited, ref IEnumerable<IRoute> routes, ref List<Journey> journeys)
         {
-            foreach (Route r in routes.Where(r => r.PortFrom == portFrom && !portsVisited.Contains(r.PortFrom)))
+            foreach (IRoute r in routes.Where(r => r.From == portFrom && !portsVisited.Contains(r.From)))
             {
                 var newPortsVisited = new List<string>(portsVisited);
-                newPortsVisited.Add(r.PortFrom);
+                newPortsVisited.Add(r.From);
 
-                if (r.PortTo == portTo)
+                if (r.To == portTo)
                 {
                     newPortsVisited.Add(portTo);
                     journeys.Add(CreateJourneyFromRecursivePortsVisited(newPortsVisited.ToArray(), ref routes));
                 }
                 else
                 {
-                    FindRoutesRecursive(r.PortTo, portTo, newPortsVisited, ref routes, ref journeys);
+                    FindRoutesRecursive(r.To, portTo, newPortsVisited, ref routes, ref journeys);
                 }
             }
         }
 
-        private Journey CreateJourneyFromRecursivePortsVisited(string[] ports, ref IEnumerable<Route> routes)
+        private Journey CreateJourneyFromRecursivePortsVisited(string[] ports, ref IEnumerable<IRoute> routes)
         {
             var journey = new Journey();
 
             for (var i = 0; i < ports.Length - 1; i++)
             {
-                journey.Routes.Add(routes.Where(r => r.PortFrom == ports[i] && r.PortTo == ports[i + 1]).Single());
+                journey.Routes.Add(routes.Single(r => r.From == ports[i] && r.To == ports[i + 1]));
             }
 
             return journey;

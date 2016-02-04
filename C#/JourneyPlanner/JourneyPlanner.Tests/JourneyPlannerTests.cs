@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using NSubstitute;
-using JourneyPlanner;
+using JourneyPlanner.Interfaces;
 
 namespace JourneyPlanner.Tests
 {
@@ -13,18 +12,7 @@ namespace JourneyPlanner.Tests
     {
         #region Test Data
 
-        private List<Route> fakeRoutesDb = new List<Route>
-        {         
-            new Route { Id = 1, PortFrom = "Buenos Aires", PortTo = "New York", Duration = 6 },
-            new Route { Id = 2, PortFrom = "Buenos Aires", PortTo = "Casablanca", Duration = 5 },
-            new Route { Id = 3, PortFrom = "Buenos Aires", PortTo = "Cape Town", Duration = 4 },
-            new Route { Id = 4, PortFrom = "Cape Town", PortTo = "New York", Duration = 4 },                
-            new Route { Id = 5, PortFrom = "Casablanca", PortTo = "Liverpool", Duration = 3 },
-            new Route { Id = 6, PortFrom = "Casablanca", PortTo = "Cape Town", Duration = 6 },                
-            new Route { Id = 7, PortFrom = "Liverpool", PortTo = "Casablanca", Duration = 3 },
-            new Route { Id = 8, PortFrom = "Liverpool", PortTo = "Cape Town", Duration = 6},
-            new Route { Id = 9, PortFrom = "New York", PortTo = "Liverpool", Duration = 8 }
-        };
+        private readonly List<IRoute> _fakeRoutesDb = new List<IRoute>();
 
         #endregion
 
@@ -32,7 +20,7 @@ namespace JourneyPlanner.Tests
 
         private IRouteRepository MakeFakeRouteRepository()
         {
-            var fakeRepository = Substitute.For<IRouteRepository>();
+            PopulateFakeDb();
 
             return Substitute.For<IRouteRepository>();
         }
@@ -40,6 +28,34 @@ namespace JourneyPlanner.Tests
         private JourneyPlanner MakeJourneyPlanner(IRouteRepository routeRepository)
         {
             return new JourneyPlanner(routeRepository);
+        }
+
+        private IRoute MakeFakeRoute(int id, string from, string to, int duration)
+        {
+            var fakeRoute = Substitute.For<IRoute>();
+
+            fakeRoute.Id = id;
+            fakeRoute.Duration = duration;
+            fakeRoute.From = from;
+            fakeRoute.To = to;
+
+            return fakeRoute;
+        }
+
+        private void PopulateFakeDb()
+        {
+            if (_fakeRoutesDb.Count <= 0)
+            {
+                _fakeRoutesDb.Add(MakeFakeRoute(1, "Buenos Aires", "New York", 6));
+                _fakeRoutesDb.Add(MakeFakeRoute(2, "Buenos Aires", "Casablanca", 5));
+                _fakeRoutesDb.Add(MakeFakeRoute(3, "Buenos Aires", "Cape Town", 4));
+                _fakeRoutesDb.Add(MakeFakeRoute(4, "Cape Town", "New York", 4));
+                _fakeRoutesDb.Add(MakeFakeRoute(5, "Casablanca", "Liverpool", 3));
+                _fakeRoutesDb.Add(MakeFakeRoute(6, "Casablanca", "Cape Town", 6));
+                _fakeRoutesDb.Add(MakeFakeRoute(7, "Liverpool", "Casablanca", 3));
+                _fakeRoutesDb.Add(MakeFakeRoute(8, "Liverpool", "Cape Town", 6));
+                _fakeRoutesDb.Add(MakeFakeRoute(9, "New York", "Liverpool", 8));
+            }
         }
 
         #endregion
@@ -53,7 +69,7 @@ namespace JourneyPlanner.Tests
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
             mockRepository.GetRoute(Arg.Any<string>(), Arg.Any<string>())
-                          .Returns(getRoute => fakeRoutesDb.Single(r => r.PortFrom == getRoute[0].ToString() && r.PortTo == getRoute[1].ToString()));
+                          .Returns(getRoute => _fakeRoutesDb.Single(r => r.From == getRoute[0].ToString() && r.To == getRoute[1].ToString()));
 
             var actual = journeyPlanner.CreateJourneyForExactPorts(ports).Duration;
 
@@ -69,7 +85,7 @@ namespace JourneyPlanner.Tests
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
             mockRepository.GetRoute(Arg.Any<string>(), Arg.Any<string>())
-                          .Returns(getRoute => fakeRoutesDb.Single(r => r.PortFrom == getRoute[0].ToString() && r.PortTo == getRoute[1].ToString()));
+                          .Returns(getRoute => _fakeRoutesDb.Single(r => r.From == getRoute[0].ToString() && r.To == getRoute[1].ToString()));
 
             var actual = journeyPlanner.CreateJourneyForExactPorts(ports).Routes.Count;
 
@@ -100,7 +116,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.CreatePossibleJourneysBetweenPorts(portFrom, portTo).Count();
             Assert.AreEqual(expected, actual);
@@ -113,7 +129,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindShortestJourneysBetweenPorts(portFrom, portTo).Duration;
             Assert.AreEqual(expected, actual);
@@ -126,7 +142,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindJourneysByFilter(portFrom, portTo, JourneyPlanner.JourneyFilter.MinStops, minStops).Count();
             Assert.AreEqual(expected, actual);
@@ -139,7 +155,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindJourneysByFilter(portFrom, portTo, JourneyPlanner.JourneyFilter.MaxStops, maxStops).Count();
             Assert.AreEqual(expected, actual);
@@ -153,7 +169,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindJourneysByFilter(portFrom, portTo, JourneyPlanner.JourneyFilter.ExactStops, numStops).Count();
             Assert.AreEqual(expected, actual);
@@ -166,7 +182,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindJourneysByFilter(portFrom, portTo, JourneyPlanner.JourneyFilter.MaxDuration, maxDuration).Count();
             Assert.AreEqual(expected, actual);
@@ -179,7 +195,7 @@ namespace JourneyPlanner.Tests
             var mockRepository = MakeFakeRouteRepository();
             var journeyPlanner = MakeJourneyPlanner(mockRepository);
 
-            mockRepository.GetRoutes().Returns(fakeRoutesDb);
+            mockRepository.GetRoutes().Returns(_fakeRoutesDb);
 
             var actual = journeyPlanner.FindJourneysByFilter(portFrom, portTo, JourneyPlanner.JourneyFilter.MinDuration, minDuration).Count();
             Assert.AreEqual(expected, actual);

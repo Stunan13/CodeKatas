@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JourneyPlanner.Interfaces;
 
 namespace JourneyPlanner
 {
-    public class Journey
+    public class Journey : IJourney
     {
-        public List<Route> Routes { get; set; }
+        public List<IRoute> Routes { get; set; }
 
         public int Duration
         {
@@ -14,7 +15,7 @@ namespace JourneyPlanner
 
         public Journey()
         {
-            Routes = new List<Route>();
+            Routes = new List<IRoute>();
         }
     }
 }
