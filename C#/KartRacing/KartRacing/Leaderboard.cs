@@ -50,16 +50,16 @@ namespace KartRacing
             switch (position)
             {
                 case 1:
-                    points = 9;
+                    points = Constants.FirstPlacePoints;
                     break;
                 case 2:
-                    points = 6;
+                    points = Constants.SecondPlacePoints;
                     break;
                 case 3:
-                    points = 3;
+                    points = Constants.ThirdPlacePoints;
                     break;
                 case 4:
-                    points = 1;
+                    points = Constants.FourthPlacePoints;
                     break;
             }
 

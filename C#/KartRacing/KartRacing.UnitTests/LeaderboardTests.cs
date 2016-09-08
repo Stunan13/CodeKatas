@@ -50,8 +50,8 @@ namespace KartRacing.UnitTests
             var leaderboard = new Leaderboard();
             var expectedScores = new Dictionary<Character, int>();
 
-            expectedScores.Add(Character.Mario, 18);
-            expectedScores.Add(Character.Luigi, 12);
+            expectedScores.Add(Character.Mario, Constants.FirstPlacePoints * 2);
+            expectedScores.Add(Character.Luigi, Constants.SecondPlacePoints * 2);
 
             leaderboard.GetPlayerScores(game).ShouldBeEquivalentTo(expectedScores);            
         }
@@ -62,12 +62,12 @@ namespace KartRacing.UnitTests
             var leaderBoard = new Leaderboard();
             var scores = new Dictionary<Character, int>();
             scores.Add(Character.Mario, 0);
-            scores.Add(Character.Luigi, 10);
-            scores.Add(Character.Bowser, 5);
+            scores.Add(Character.Luigi, Constants.FirstPlacePoints);
+            scores.Add(Character.Bowser, Constants.ThirdPlacePoints);
 
             var expectedStandings = new SortedDictionary<int, IPlayerScore>();
-            expectedStandings.Add(1, new PlayerScore(Character.Luigi, 10));
-            expectedStandings.Add(2, new PlayerScore(Character.Bowser, 5));
+            expectedStandings.Add(1, new PlayerScore(Character.Luigi, Constants.FirstPlacePoints));
+            expectedStandings.Add(2, new PlayerScore(Character.Bowser, Constants.ThirdPlacePoints));
             expectedStandings.Add(3, new PlayerScore(Character.Mario, 0));
 
             leaderBoard.CalculateStandings(scores);
