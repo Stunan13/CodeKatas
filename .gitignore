@@ -3,3 +3,8 @@
 ################################################################################
 
 *.suo
+/C#/KartRacing/KartRacing/bin/Debug
+/C#/KartRacing/KartRacing/obj/Debug
+/C#/KartRacing/KartRacing.UnitTests/bin/Debug
+/C#/KartRacing/KartRacing.UnitTests/obj/Debug
+/C#/KartRacing/packages
