@@ -1,2 +1,2 @@
 #KartRacing
-A test-driven recreation of the game creation and game play workflow in Mario Kart 64
+A test-driven recreation of the setup and gameplay workflows in Mario Kart 64
